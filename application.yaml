@@ -10,7 +10,7 @@ metadata:
 spec:
   project: demo-test-ani
   destination:
-    namespace: ani-test
+    namespace: dev
     server: https://kubernetes.default.svc
   source:
     kustomize:
