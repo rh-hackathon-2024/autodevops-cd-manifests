@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  annotations:
+    argocd-image-updater.argoproj.io/alias1.update-strategy: digest
+    argocd-image-updater.argoproj.io/image-list: alias1=quay.io/rh-ee-anataraj/hello-world:0.1
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+  name: hello-world-app
+spec:
+  project: demo-test-ani
+  destination:
+    namespace: ani-test
+    server: https://kubernetes.default.svc
+  source:
+    kustomize:
+      images:
+      - quay.io/rh-ee-anataraj/hello-world:0.1
+    path: hello-world/
+    repoURL: git@github.com:rh-hackathon-2024/autodevops-openshift-manifests.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
