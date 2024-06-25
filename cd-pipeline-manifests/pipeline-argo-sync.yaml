@@ -12,18 +12,26 @@ metadata:
 data:
   # choose one of username/password or auth token
   ARGOCD_USERNAME: YWRtaW4=  
-  ARGOCD_PASSWORD: R1MwZW5SY1VpeGR2WWozOHJPd3RYQURwUU5LZjk3VHk=
+  ARGOCD_PASSWORD: <password>
   #ARGOCD_AUTH_TOKEN: <token>
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: argocd-pipeline
+  name: argocd-pipeline-autodevops
 spec:
   tasks:
-    - name: sync-application
+    - name: refresh-app
       taskRef:
-        name: argocd-task-sync-and-wait
+        name: argocd-task-app-refresh
+      params:
+        - name: application-name
+          value: hello-world-app
+    - name: check-diff
+      taskRef:
+        name: argocd-task-check-diff-sync
+      runAfter: 
+        - refresh-app
       params:
         - name: application-name
           value: hello-world-app
