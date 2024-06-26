@@ -6,7 +6,7 @@ metadata:
     argocd-image-updater.argoproj.io/image-list: alias1=quay.io/rh-ee-anataraj/hello-world:0.1
     argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/git-branch: main
-  name: hello-world-app
+  name: autodevops-app-go
   namespace: openshift-gitops # either argocd
 spec:
   project: default
