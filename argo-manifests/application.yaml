@@ -21,8 +21,8 @@ spec:
     repoURL: https://github.com/rh-hackathon-2024/autodevops-openshift-manifests
     targetRevision: HEAD
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    # automated:
+      # prune: true
+      # selfHeal: true
     syncOptions:
     - CreateNamespace=true
