@@ -18,7 +18,7 @@ spec:
       images:
       - quay.io/rh-ee-anataraj/hello-world:0.1
     path: hello-world/
-    repoURL: https://github.com/rh-hackathon-2024/autodevops-openshift-manifests
+    repoURL: git@github.com:rh-hackathon-2024/autodevops-openshift-manifests.git
     targetRevision: HEAD
   syncPolicy:
     # automated:
