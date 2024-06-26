@@ -9,9 +9,9 @@ metadata:
   name: hello-world-app
   namespace: openshift-gitops # either argocd
 spec:
-  project: demo-test-ani
+  project: default
   destination:
-    namespace: dev
+    namespace: demo
     server: https://kubernetes.default.svc
   source:
     kustomize:
