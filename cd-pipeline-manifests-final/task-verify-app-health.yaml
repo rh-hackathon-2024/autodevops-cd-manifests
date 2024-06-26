@@ -1,0 +1,72 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: verify-app-health
+  namespace: demo
+  labels:
+    app.kubernetes.io/version: '0.2'
+spec:
+  description: |-
+    This task outputs the argo managed app health status
+    To do so, it requires the address of the Argo CD server and some form of authentication either a username/password or an authentication token.
+  params:
+    - description: name of the application to sync
+      name: application-name
+      type: string
+    - default: HEAD
+      description: the revision to sync to
+      name: revision
+      type: string
+    - default: '--'
+      name: flags
+      type: string
+    - default: v2.2.2
+      name: argocd-version
+      type: string
+    - default: '60'
+      name: timeout
+      type: string
+  results:
+    - name: sync_status
+      type: string
+    - name: health_status
+      type: string
+  stepTemplate:
+    envFrom:
+      - configMapRef:
+          name: argocd-env-configmap
+      - secretRef:
+          name: argocd-env-secret
+    name: ''
+    resources: {}
+  steps:
+    - image: 'quay.io/argoproj/argocd:$(params.argocd-version)'
+      name: login
+      resources: {}
+      script: |
+        if [ -z "$ARGOCD_AUTH_TOKEN" ]; then
+          yes | argocd login "$ARGOCD_SERVER" --username="$ARGOCD_USERNAME" --password="$ARGOCD_PASSWORD";
+        fi
+
+        # end_time=$(($(date +%s) + $timeout))
+
+        while true; do
+          SYNC_STATUS=$(argocd app get $(params.application-name) | awk -F ': ' '/Sync Status:/ {print $2}' | tr -d '[:space:]')
+          if echo $SYNC_STATUS | grep -iq "outofsync"; then
+            echo "Application is out of sync!!"
+            break
+          else
+            argocd app get $(params.application-name) --hard-refresh > /dev/null
+            echo "No diff found, Refreshing the application!!"
+            sleep 5
+          fi
+          
+          # Check if timeout has been reached
+          # current_time=$(date +%s)
+          # if [ $current_time -gt $end_time ]; then
+          #     echo "Timeout reached. Sync status not OutOfSync within $timeout seconds."
+          #     break  # Exit the loop on timeout
+          # fi
+          # sleep 5
+        done
