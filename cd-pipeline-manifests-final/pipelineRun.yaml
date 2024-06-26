@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: deploy-pipeline
+  annotations:
+    pipelinesascode.tekton.dev/on-comment: "^/deploy"
+spec:
+  params:
+    - name: pull-request-number
+      value: "{{pull_request_number}}"
+    - name: repo-url
+      value: "{{repo_url}}"
+  pipelineSpec:
+    params:
+    - name: repo-url
+      type: string
+    - name: pull-request-number
+      type: string
+  tasks:
+    - name: verify-app-health
+      params:
+        - name: application-name
+          value: hello-world-app
+      taskRef:
+        kind: Task
+        name: verify-app-health
+    - name: sync-argo-app
+      params:
+        - name: application-name
+          value: hello-world-app
+      runAfter:
+        - verify-app-health
+      taskRef:
+        kind: Task
+        name: argocd-task-check-diff-sync
+    - name: publish-sync-status-to-pr
+      params:
+        - name: REQUEST_URL
+          value: $(params.repo-url)/pull/$(params.pull-request-number)
+        - name: COMMENT_OR_FILE
+          value: |
+            Argo application was synced: $(tasks.sync-argo-app.results.SYNC_STATUS)
+            Application is $(tasks.sync-argo-app.results.HEALTH_STATUS)
+        - name: GITHUB_TOKEN_SECRET_NAME
+          value: hackathon-2024
+      runAfter:
+        - sync-argo-app
+      taskRef:
+        kind: Task
+        name: github-add-comment
+
+
+
+
+
+
+
+
+
+
+
+
