@@ -5,9 +5,9 @@ metadata:
   name: cd-pipeline
   annotations:
     pipelinesascode.tekton.dev/on-comment: "^/deploy"
-    pipelinesascode.tekton.dev/task: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-verify-app-health.yaml"
-    pipelinesascode.tekton.dev/task-1: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-sync-argo-app.yaml"
-    pipelinesascode.tekton.dev/task-2: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-get-routes.yaml"
+    pipelinesascode.tekton.dev/task: "https://github.com/rh-hackathon-2024/autodevops-platform-manifests/blob/main/tasks/task-verify-app-health.yaml"
+    pipelinesascode.tekton.dev/task-1: "https://github.com/rh-hackathon-2024/autodevops-platform-manifests/blob/main/tasks/task-sync-argo-app.yaml"
+    pipelinesascode.tekton.dev/task-2: "https://github.com/rh-hackathon-2024/autodevops-platform-manifests/blob/main/tasks/task-get-routes.yaml"
     pipelinesascode.tekton.dev/task-3: "[github-add-comment]"
 spec:
   params:
@@ -62,6 +62,5 @@ spec:
         - get-app-endpoint
       taskRef:
         kind: Task
-        name: github-add-commenit
-
+        name: github-add-comment
 
