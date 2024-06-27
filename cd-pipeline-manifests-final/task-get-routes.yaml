@@ -55,5 +55,5 @@ spec:
         export KUBECONFIG=$(workspaces.kubeconfig-dir.path)/kubeconfig
 
         $(params.SCRIPT)
-        URL = $(oc get route go-app-route --template='http://{{.spec.host}}:{{.spec.port.targetPort}}{{.spec.path}}')
+        URL = $(oc get route go-app-route --template='http://{{.spec.host}}:{{.spec.port.targetPort}}{{.spec.path}}' -n demo)
         echo -n $URL | tee $(results.output.path);
