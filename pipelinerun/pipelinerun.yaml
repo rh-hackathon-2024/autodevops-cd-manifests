@@ -1,62 +1,67 @@
+---
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: deploy-pipeline
+  name: cd-pipeline
   annotations:
     pipelinesascode.tekton.dev/on-comment: "^/deploy"
+    pipelinesascode.tekton.dev/task: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-verify-app-health.yaml"
+    pipelinesascode.tekton.dev/task-1: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-sync-argo-app.yaml"
+    pipelinesascode.tekton.dev/task-2: "https://github.com/rh-hackathon-2024/autodevops-cd-manifests/blob/main/tasks/task-get-routes.yaml"
+    pipelinesascode.tekton.dev/task-3: "[github-add-comment]"
 spec:
   params:
-    - name: pull-request-number
-      value: "{{pull_request_number}}"
     - name: repo-url
       value: "{{repo_url}}"
   pipelineSpec:
     params:
     - name: repo-url
-      type: string
-    - name: pull-request-number
-      type: string
-  tasks:
+    tasks:
     - name: verify-app-health
       params:
         - name: application-name
-          value: hello-world-app
+          value: "{{ repo_name }}"
       taskRef:
         kind: Task
         name: verify-app-health
     - name: sync-argo-app
       params:
         - name: application-name
-          value: hello-world-app
+          value: "{{ repo_name }}"
       runAfter:
         - verify-app-health
       taskRef:
         kind: Task
-        name: argocd-task-check-diff-sync
-    - name: publish-sync-status-to-pr
+        name: sync-argo-app
+    - name: get-app-endpoint
       params:
-        - name: REQUEST_URL
-          value: $(params.repo-url)/pull/$(params.pull-request-number)
-        - name: COMMENT_OR_FILE
+        - name: SCRIPT
           value: |
-            Argo application was synced: $(tasks.sync-argo-app.results.SYNC_STATUS)
-            Application is $(tasks.sync-argo-app.results.HEALTH_STATUS)
-        - name: GITHUB_TOKEN_SECRET_NAME
-          value: hackathon-2024
+            "oc get route go-app-route --template='http://{{.spec.host}}:{{.spec.port.targetPort}}{{.spec.path}}'"
+        - name: VERSION
+          value: latest
       runAfter:
         - sync-argo-app
       taskRef:
         kind: Task
-        name: github-add-comment
-
-
-
-
-
-
-
-
-
-
+        name: openshift-client
+    - name: publish-status-to-github
+      params:
+        - name: REQUEST_URL
+          value: $(params.repo-url)/pull/{{ pull_request_number }}
+        - name: COMMENT_OR_FILE
+          value: |
+            Application status is $(tasks.sync-argo-app.results.HEALTH_STATUS).
+            You can access the application using the following link $(tasks.get-app-endpoint.results.output)
+        - name: GITHUB_TOKEN_SECRET_NAME
+          value: "{{ git_auth_secret }}"
+        - name: GITHUB_TOKEN_SECRET_KEY
+          value: "git-provider-token"
+      runAfter:
+        - sync-argo-app
+        - get-app-endpoint
+      taskRef:
+        kind: Task
+        name: github-add-commenit
 
 

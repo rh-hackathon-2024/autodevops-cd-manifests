@@ -1,1 +1,0 @@
-# demogitops-pipeline-spec
